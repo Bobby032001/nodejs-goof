@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        EMAIL_TO = 'developer@example.com'
+        EMAIL_TO = 'sonis95190618@gmail.com'
         EMAIL_TO_SECURITY = 'bobbyverma2001@example.com'
     }
 
