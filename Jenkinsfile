@@ -1,12 +1,8 @@
 pipeline {
-    agent {
-        node {
-            label 'master'
-        }
-    }
+    agent any
 
     tools {
-        nodejs 'nodejs'
+        nodejs 'nodejs' // Your configured Node.js tool in Jenkins
     }
 
     stages {
@@ -22,13 +18,47 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                script {
+                    // Run tests, save output to a log file
+                    def testStatus = sh(script: 'npm test > test.log 2>&1', returnStatus: true)
+                    if (testStatus != 0) {
+                        error "Tests failed"
+                    }
+                }
+            }
+            post {
+                always {
+                    emailext (
+                        subject: "Build ${currentBuild.fullDisplayName} - Test Stage: ${currentBuild.currentResult}",
+                        body: "The Test stage has completed with status: ${currentBuild.currentResult}",
+                        to: 'developer@example.com',
+                        attachmentsPattern: 'test.log'
+                    )
+                }
+            }
+        }
+
         stage('Security Scan') {
             steps {
                 script {
-                    def auditStatus = sh(script: 'npm audit --json', returnStatus: true)
+                    // Run npm audit, save output in JSON and log formats
+                    def auditStatus = sh(script: 'npm audit --json > audit-report.json', returnStatus: true)
+                    sh 'npm audit > audit.log 2>&1'
                     if (auditStatus != 0) {
-                        echo "npm audit found vulnerabilities, but continuing pipeline."
+                        echo "Vulnerabilities found during security scan."
                     }
+                }
+            }
+            post {
+                always {
+                    emailext (
+                        subject: "Build ${currentBuild.fullDisplayName} - Security Scan: ${currentBuild.currentResult}",
+                        body: "The Security Scan stage has completed with status: ${currentBuild.currentResult}",
+                        to: 'developer@example.com',
+                        attachmentsPattern: 'audit.log'
+                    )
                 }
             }
         }
