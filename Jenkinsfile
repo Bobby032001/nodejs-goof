@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/Bobby032001/nodejs-goof.git'
+                git branch: 'main', url: 'https://github.com/Bobby032001/nodejs-goof.git'
             }
         }
 
