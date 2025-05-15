@@ -56,7 +56,7 @@ pipeline {
                     emailext (
                         subject: "Build ${currentBuild.fullDisplayName} - Security Scan: ${currentBuild.currentResult}",
                         body: "The Security Scan stage has completed with status: ${currentBuild.currentResult}",
-                        to: 'developer@example.com',
+                        to: 'bobbyverma2001@example.com',
                         attachmentsPattern: 'audit.log'
                     )
                 }
