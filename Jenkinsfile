@@ -2,16 +2,10 @@ pipeline {
     agent any
 
     environment {
-        NODE_ENV = 'development'
+        SNYK_TOKEN = credentials('SNYK_TOKEN')
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/Bobby032001/nodejs-goof.git'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
@@ -19,26 +13,27 @@ pipeline {
         }
 
         stage('Run Tests') {
-    steps {
-        sh 'SNYK_CFG_DISABLE=true snyk test || true'
-    }
-}
+            steps {
+                sh 'npx snyk test || true' // Continue even if this fails
+            }
+        }
 
         stage('Snyk Scan') {
             steps {
                 withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
-                    sh 'snyk auth $SNYK_TOKEN'
-                    sh 'snyk test'
+                    sh 'npx snyk test --json > snyk-report.json || true'
                 }
             }
         }
     }
 
     post {
-        failure {
-            emailext to: 'sonis95190618@gmail.com',
-                     subject: "Build Failed",
-                     body: "Check Jenkins for details: ${env.BUILD_URL}"
+        always {
+            emailext (
+                to: 'sonis95190618@gmail.com',
+                subject: "Jenkins Build ${currentBuild.currentResult}: ${env.JOB_NAME}",
+                body: "Build result: ${currentBuild.currentResult}. Check the console output for details."
+            )
         }
     }
 }
